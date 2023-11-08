@@ -69,6 +69,7 @@ We welcome contributions from the community. If you find a bug or have an idea f
 
 - Use go-release and github action for auto-releasing the package.
 - Add support for embeded structs.
+- Add support for url.Values to struct decoding.
 
 ## License
 
