@@ -63,6 +63,11 @@ In this example, we have a struct `MyForm`, and we use the `form` tag to specify
 
 We welcome contributions from the community. If you find a bug or have an idea for an improvement, please open an issue or create a pull request.
 
+## TODO List
+
+- Use go-release and github action for auto-releasing the package.
+- Add support for embeded structs.
+
 ## License
 
 FormGo is licensed under the MIT License.
