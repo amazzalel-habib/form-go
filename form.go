@@ -7,10 +7,14 @@ import (
 	"strconv"
 )
 
+// FloatPrecision is the precision used when formatting float values.
+var FloatPrecision = -1
+
 // EncodeFormValues encodes a struct into URL form values by extracting tagged fields.
 //
 // The function accepts a struct and extracts fields with the "form" tag. It then
-// converts non-empty string and non-zero integer fields into URL form values.
+// converts non-empty string, non-zero integer, true boolean, and non-zero float fields
+// into URL form values. It also handles pointer values for these primitive types.
 //
 // Parameters:
 //   - data: The input struct to be encoded.
@@ -40,17 +44,36 @@ func EncodeFormValues(data interface{}) (url.Values, error) {
 
 		fieldValue := v.Field(i)
 
-		// Handle string fields
-		if fieldValue.Kind() == reflect.String {
-			if fieldValue.String() != "" {
-				values.Add(fieldName, fieldValue.String())
+		// Handle pointer values
+		if fieldValue.Kind() == reflect.Ptr {
+			fieldValue = fieldValue.Elem()
+
+			// Check if the pointer is nil
+			if !fieldValue.IsValid() {
+				continue
 			}
 		}
 
-		// Handle integer fields
-		if fieldValue.Kind() == reflect.Int {
+		switch fieldValue.Kind() {
+		case reflect.String:
+			if fieldValue.String() != "" {
+				values.Add(fieldName, fieldValue.String())
+			}
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			if fieldValue.Int() != 0 {
-				values.Add(fieldName, strconv.Itoa(int(fieldValue.Int())))
+				values.Add(fieldName, strconv.FormatInt(fieldValue.Int(), 10))
+			}
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			if fieldValue.Uint() != 0 {
+				values.Add(fieldName, strconv.FormatUint(fieldValue.Uint(), 10))
+			}
+		case reflect.Bool:
+			if fieldValue.Bool() {
+				values.Add(fieldName, "true")
+			}
+		case reflect.Float32, reflect.Float64:
+			if fieldValue.Float() != 0.0 {
+				values.Add(fieldName, strconv.FormatFloat(fieldValue.Float(), 'f', FloatPrecision, 64))
 			}
 		}
 	}
