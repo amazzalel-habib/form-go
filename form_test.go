@@ -16,6 +16,23 @@ func TestEncodeFormValues_NonStructInput(t *testing.T) {
 	}
 }
 
+type TestData struct {
+	StringField  string  `form:"str_field"`
+	IntField     int     `form:"int_field"`
+	Int8Field    int8    `form:"int8_field"`
+	Int16Field   int16   `form:"int16_field"`
+	Int32Field   int32   `form:"int32_field"`
+	Int64Field   int64   `form:"int64_field"`
+	UintField    uint    `form:"uint_field"`
+	Uint8Field   uint8   `form:"uint8_field"`
+	Uint16Field  uint16  `form:"uint16_field"`
+	Uint32Field  uint32  `form:"uint32_field"`
+	Uint64Field  uint64  `form:"uint64_field"`
+	BoolField    bool    `form:"bool_field"`
+	Float32Field float32 `form:"float32_field"`
+	Float64Field float64 `form:"float64_field"`
+}
+
 type TestDataNoTag struct {
 	StringField  string
 	IntField     int
@@ -33,14 +50,73 @@ type TestDataNoTag struct {
 	Float64Field float64
 }
 
-func TestEncodeFormValues_SkipNoFormTag(t *testing.T) {
+type TestDataWithOmitEmpty struct {
+	StringField     string   `form:"str_field,omitempty"`
+	IntField        int      `form:"int_field,omitempty"`
+	Int8Field       int8     `form:"int8_field,omitempty"`
+	Int16Field      int16    `form:"int16_field,omitempty"`
+	Int32Field      int32    `form:"int32_field,omitempty"`
+	Int64Field      int64    `form:"int64_field,omitempty"`
+	UintField       uint     `form:"uint_field,omitempty"`
+	Uint8Field      uint8    `form:"uint8_field,omitempty"`
+	Uint16Field     uint16   `form:"uint16_field,omitempty"`
+	Uint32Field     uint32   `form:"uint32_field,omitempty"`
+	Uint64Field     uint64   `form:"uint64_field,omitempty"`
+	BoolField       bool     `form:"bool_field,omitempty"`
+	Float32Field    float32  `form:"float32_field,omitempty"`
+	Float64Field    float64  `form:"float64_field,omitempty"`
+	PtrStringField  *string  `form:"ptr_str_field,omitempty"`
+	PtrIntField     *int     `form:"ptr_int_field,omitempty"`
+	PtrInt8Field    *int8    `form:"ptr_int8_field,omitempty"`
+	PtrInt16Field   *int16   `form:"ptr_int16_field,omitempty"`
+	PtrInt32Field   *int32   `form:"ptr_int32_field,omitempty"`
+	PtrInt64Field   *int64   `form:"ptr_int64_field,omitempty"`
+	PtrUintField    *uint    `form:"ptr_uint_field,omitempty"`
+	PtrUint8Field   *uint8   `form:"ptr_uint8_field,omitempty"`
+	PtrUint16Field  *uint16  `form:"ptr_uint16_field,omitempty"`
+	PtrUint32Field  *uint32  `form:"ptr_uint32_field,omitempty"`
+	PtrUint64Field  *uint64  `form:"ptr_uint64_field,omitempty"`
+	PtrBoolField    *bool    `form:"ptr_bool_field,omitempty"`
+	PtrFloat32Field *float32 `form:"ptr_float32_field,omitempty"`
+	PtrFloat64Field *float64 `form:"ptr_float64_field,omitempty"`
+}
+
+type TestDataPtr struct {
+	StringField  *string  `form:"str_field"`
+	IntField     *int     `form:"int_field"`
+	Int8Field    *int8    `form:"int8_field"`
+	Int16Field   *int16   `form:"int16_field"`
+	Int32Field   *int32   `form:"int32_field"`
+	Int64Field   *int64   `form:"int64_field"`
+	UintField    *uint    `form:"uint_field"`
+	Uint8Field   *uint8   `form:"uint8_field"`
+	Uint16Field  *uint16  `form:"uint16_field"`
+	Uint32Field  *uint32  `form:"uint32_field"`
+	Uint64Field  *uint64  `form:"uint64_field"`
+	BoolField    *bool    `form:"bool_field"`
+	Float32Field *float32 `form:"float32_field"`
+	Float64Field *float64 `form:"float64_field"`
+}
+
+type SubData struct {
+	SubStringField string `form:"sub_str_field"`
+}
+
+type TestDataWithSubStruct struct {
+	StringField string  `form:"str_field"`
+	IntField    int     `form:"int_field"`
+	SubData     SubData `form:"sub_data"`
+}
+
+func TestEncodeFormValues(t *testing.T) {
+	FloatPrecision = 2
 	testCases := []struct {
 		name     string
 		input    interface{}
 		expected url.Values
 	}{
 		{
-			name: "ValidData",
+			name: "ValidDataSkipNoFormTag",
 			input: TestDataNoTag{
 				StringField:  "abc",
 				IntField:     123,
@@ -59,46 +135,6 @@ func TestEncodeFormValues_SkipNoFormTag(t *testing.T) {
 			},
 			expected: url.Values{},
 		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			values, err := EncodeFormValues(tc.input)
-			if err != nil {
-				t.Errorf("EncodeFormValues returned an error: %v", err)
-			}
-
-			if !urlValuesEqual(values, tc.expected) {
-				t.Errorf("EncodeFormValues result mismatch. Got %v, expected %v", values, tc.expected)
-			}
-		})
-	}
-}
-
-type TestData struct {
-	StringField  string  `form:"str_field"`
-	IntField     int     `form:"int_field"`
-	Int8Field    int8    `form:"int8_field"`
-	Int16Field   int16   `form:"int16_field"`
-	Int32Field   int32   `form:"int32_field"`
-	Int64Field   int64   `form:"int64_field"`
-	UintField    uint    `form:"uint_field"`
-	Uint8Field   uint8   `form:"uint8_field"`
-	Uint16Field  uint16  `form:"uint16_field"`
-	Uint32Field  uint32  `form:"uint32_field"`
-	Uint64Field  uint64  `form:"uint64_field"`
-	BoolField    bool    `form:"bool_field"`
-	Float32Field float32 `form:"float32_field"`
-	Float64Field float64 `form:"float64_field"`
-}
-
-func TestEncodeFormValues(t *testing.T) {
-	FloatPrecision = 2
-	testCases := []struct {
-		name     string
-		input    interface{}
-		expected url.Values
-	}{
 		{
 			name: "ValidData",
 			input: TestData{
@@ -154,6 +190,16 @@ func TestEncodeFormValues(t *testing.T) {
 			},
 			expected: url.Values{
 				"str_field":     []string{"abc"},
+				"int_field":     []string{"0"},
+				"int8_field":    []string{"0"},
+				"int16_field":   []string{"0"},
+				"int32_field":   []string{"0"},
+				"int64_field":   []string{"0"},
+				"uint_field":    []string{"0"},
+				"uint8_field":   []string{"0"},
+				"uint16_field":  []string{"0"},
+				"uint32_field":  []string{"0"},
+				"uint64_field":  []string{"0"},
 				"bool_field":    []string{"true"},
 				"float32_field": []string{"1.23"},
 				"float64_field": []string{"2.34"},
@@ -177,50 +223,119 @@ func TestEncodeFormValues(t *testing.T) {
 				Float32Field: 0,
 				Float64Field: 0,
 			},
-			expected: url.Values{},
+			expected: url.Values{
+				"str_field":     []string{""},
+				"int_field":     []string{"0"},
+				"int8_field":    []string{"0"},
+				"int16_field":   []string{"0"},
+				"int32_field":   []string{"0"},
+				"int64_field":   []string{"0"},
+				"uint_field":    []string{"0"},
+				"uint8_field":   []string{"0"},
+				"uint16_field":  []string{"0"},
+				"uint32_field":  []string{"0"},
+				"uint64_field":  []string{"0"},
+				"bool_field":    []string{"false"},
+				"float32_field": []string{"0"},
+				"float64_field": []string{"0"},
+			},
 		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			values, err := EncodeFormValues(tc.input)
-			if err != nil {
-				t.Errorf("EncodeFormValues returned an error: %v", err)
-			}
-
-			if !urlValuesEqual(values, tc.expected) {
-				t.Errorf("EncodeFormValues result mismatch. Got %v, expected %v", values, tc.expected)
-			}
-		})
-	}
-}
-
-type TestDataPtr struct {
-	StringField  *string  `form:"str_field"`
-	IntField     *int     `form:"int_field"`
-	Int8Field    *int8    `form:"int8_field"`
-	Int16Field   *int16   `form:"int16_field"`
-	Int32Field   *int32   `form:"int32_field"`
-	Int64Field   *int64   `form:"int64_field"`
-	UintField    *uint    `form:"uint_field"`
-	Uint8Field   *uint8   `form:"uint8_field"`
-	Uint16Field  *uint16  `form:"uint16_field"`
-	Uint32Field  *uint32  `form:"uint32_field"`
-	Uint64Field  *uint64  `form:"uint64_field"`
-	BoolField    *bool    `form:"bool_field"`
-	Float32Field *float32 `form:"float32_field"`
-	Float64Field *float64 `form:"float64_field"`
-}
-
-func TestEncodeFormValuesPointers(t *testing.T) {
-	FloatPrecision = 2
-	testCases := []struct {
-		name     string
-		input    interface{}
-		expected url.Values
-	}{
 		{
 			name: "ValidData",
+			input: TestDataWithSubStruct{
+				StringField: "abc",
+				IntField:    123,
+				SubData: SubData{
+					SubStringField: "sub-abc",
+				},
+			},
+			expected: url.Values{
+				"str_field": []string{"abc"},
+				"int_field": []string{"123"},
+			},
+		},
+		{
+			name: "ValidData",
+			input: TestDataWithOmitEmpty{
+				StringField:  "abc",
+				IntField:     123,
+				Int8Field:    8,
+				Int16Field:   16,
+				Int32Field:   32,
+				Int64Field:   64,
+				UintField:    456,
+				Uint8Field:   8,
+				Uint16Field:  16,
+				Uint32Field:  32,
+				Uint64Field:  64,
+				BoolField:    true,
+				Float32Field: 1.23,
+				Float64Field: 2.34,
+			},
+			expected: url.Values{
+				"str_field":     []string{"abc"},
+				"int_field":     []string{"123"},
+				"int8_field":    []string{"8"},
+				"int16_field":   []string{"16"},
+				"int32_field":   []string{"32"},
+				"int64_field":   []string{"64"},
+				"uint_field":    []string{"456"},
+				"uint8_field":   []string{"8"},
+				"uint16_field":  []string{"16"},
+				"uint32_field":  []string{"32"},
+				"uint64_field":  []string{"64"},
+				"bool_field":    []string{"true"},
+				"float32_field": []string{"1.23"},
+				"float64_field": []string{"2.34"},
+			},
+		},
+		{
+			name: "ZeroInt",
+			input: TestDataWithOmitEmpty{
+				StringField:  "abc",
+				IntField:     0,
+				Int8Field:    0,
+				Int16Field:   0,
+				Int32Field:   0,
+				Int64Field:   0,
+				UintField:    0,
+				Uint8Field:   0,
+				Uint16Field:  0,
+				Uint32Field:  0,
+				Uint64Field:  0,
+				BoolField:    true,
+				Float32Field: 1.23,
+				Float64Field: 2.34,
+			},
+			expected: url.Values{
+				"str_field":     []string{"abc"},
+				"bool_field":    []string{"true"},
+				"float32_field": []string{"1.23"},
+				"float64_field": []string{"2.34"},
+			},
+		},
+		{
+			name: "ZeroAll",
+			input: TestDataWithOmitEmpty{
+				StringField:  "",
+				IntField:     0,
+				Int8Field:    0,
+				Int16Field:   0,
+				Int32Field:   0,
+				Int64Field:   0,
+				UintField:    0,
+				Uint8Field:   0,
+				Uint16Field:  0,
+				Uint32Field:  0,
+				Uint64Field:  0,
+				BoolField:    false,
+				Float32Field: 0,
+				Float64Field: 0,
+			},
+			expected: url.Values{},
+		},
+		{
+			name: "ValidDataWithPointers",
 			input: TestDataPtr{
 				StringField:  String("abc"),
 				IntField:     Int(123),
@@ -255,7 +370,7 @@ func TestEncodeFormValuesPointers(t *testing.T) {
 			},
 		},
 		{
-			name: "ZeroInt",
+			name: "ValidDataWithPointersZeroInt",
 			input: TestDataPtr{
 				StringField:  String("abc"),
 				IntField:     Int(0),
@@ -274,13 +389,23 @@ func TestEncodeFormValuesPointers(t *testing.T) {
 			},
 			expected: url.Values{
 				"str_field":     []string{"abc"},
+				"int_field":     []string{"0"},
+				"int8_field":    []string{"0"},
+				"int16_field":   []string{"0"},
+				"int32_field":   []string{"0"},
+				"int64_field":   []string{"0"},
+				"uint_field":    []string{"0"},
+				"uint8_field":   []string{"0"},
+				"uint16_field":  []string{"0"},
+				"uint32_field":  []string{"0"},
+				"uint64_field":  []string{"0"},
 				"bool_field":    []string{"true"},
 				"float32_field": []string{"1.23"},
 				"float64_field": []string{"2.34"},
 			},
 		},
 		{
-			name: "NilPointers",
+			name: "ValidDataWithPointersNilPointers",
 			input: TestDataPtr{
 				StringField:  nil,
 				IntField:     nil,
@@ -297,53 +422,21 @@ func TestEncodeFormValuesPointers(t *testing.T) {
 				Float32Field: nil,
 				Float64Field: nil,
 			},
-			expected: url.Values{},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			values, err := EncodeFormValues(tc.input)
-			if err != nil {
-				t.Errorf("EncodeFormValues returned an error: %v", err)
-			}
-
-			if !urlValuesEqual(values, tc.expected) {
-				t.Errorf("EncodeFormValues result mismatch. Got %v, expected %v", values, tc.expected)
-			}
-		})
-	}
-}
-
-type SubData struct {
-	SubStringField string `form:"sub_str_field"`
-}
-
-type TestDataWithSubStruct struct {
-	StringField string  `form:"str_field"`
-	IntField    int     `form:"int_field"`
-	SubData     SubData `form:"sub_data"`
-}
-
-func TestEncodeFormValuesWithSturct(t *testing.T) {
-	FloatPrecision = 2
-	testCases := []struct {
-		name     string
-		input    interface{}
-		expected url.Values
-	}{
-		{
-			name: "ValidData",
-			input: TestDataWithSubStruct{
-				StringField: "abc",
-				IntField:    123,
-				SubData: SubData{
-					SubStringField: "sub-abc",
-				},
-			},
 			expected: url.Values{
-				"str_field": []string{"abc"},
-				"int_field": []string{"123"},
+				"str_field":     []string{""},
+				"int_field":     []string{""},
+				"int8_field":    []string{""},
+				"int16_field":   []string{""},
+				"int32_field":   []string{""},
+				"int64_field":   []string{""},
+				"uint_field":    []string{""},
+				"uint8_field":   []string{""},
+				"uint16_field":  []string{""},
+				"uint32_field":  []string{""},
+				"uint64_field":  []string{""},
+				"bool_field":    []string{""},
+				"float32_field": []string{""},
+				"float64_field": []string{""},
 			},
 		},
 	}
