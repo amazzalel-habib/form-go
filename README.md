@@ -1,5 +1,7 @@
 # FormGo
 
+[![Build Status](https://app.travis-ci.com/amazzalel-habib/form-go.svg?branch=main)](https://app.travis-ci.com/amazzalel-habib/form-go)
+
 FormGo is a Go (Golang) package that simplifies the process of encoding a struct into URL form values by extracting tagged fields. It's a convenient tool for working with web forms, making it easy to map Go structs to URL form data.
 
 ## Features
