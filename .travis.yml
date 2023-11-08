@@ -1,0 +1,10 @@
+language: go
+go:
+  - "1.21"
+
+script:
+  - go test -v -cover ./...
+
+branches:
+  only:
+    - main
