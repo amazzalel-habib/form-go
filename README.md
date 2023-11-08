@@ -5,8 +5,10 @@ FormGo is a Go (Golang) package that simplifies the process of encoding a struct
 ## Features
 
 - Encode Go structs into URL form values with minimal code.
-- Supports string and integer fields.
+- Supports string, integer, boolean, and float fields.
 - Easily customize field names using struct tags.
+- Support for pointers and omitempty tag for field exclusion.
+- Customizable precision for float values.
 
 ## Installation
 
@@ -27,16 +29,22 @@ import (
 )
 
 type MyForm struct {
-	Name  string `form:"name"`
-	Age   int    `form:"age"`
-	Email string `form:"email"`
+	Name        string  `form:"name"`
+	Age         int     `form:"age"`
+	Email       string  `form:"email"`
+	Active      bool    `form:"active"`
+	Price       float64 `form:"price"`
+	Description *string `form:"description,omitempty"`
 }
 
 func main() {
 	data := MyForm{
-		Name:  "John Doe",
-		Age:   30,
-		Email: "john@example.com",
+		Name:        "John Doe",
+		Age:         30,
+		Email:       "john@example.com",
+		Active:      true,
+		Price:       19.99,
+		Description: nil, // Pointer field is nil and excluded due to omitempty tag.
 	}
 
 	formValues, err := formgo.EncodeFormValues(data)
@@ -49,7 +57,7 @@ func main() {
 }
 ````
 
-In this example, we have a struct `MyForm`, and we use the `form` tag to specify the field names for the URL form values. The `formgo.EncodeFormValues` function encodes the struct into URL form values.
+In this example, we have a struct `MyForm`, and we use the `form` tag to specify the field names for the URL form values. The `formgo.EncodeFormValues` function encodes the struct into URL form values, supporting various data types and handling pointer fields with the omitempty tag.
 
 ## Contributing
 
